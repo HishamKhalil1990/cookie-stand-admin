@@ -4,6 +4,8 @@ This example shows how to use [Tailwind CSS](https://tailwindcss.com/) [(v2.2)](
 
 It uses the new [`Just-in-Time Mode`](https://tailwindcss.com/docs/just-in-time-mode) for Tailwind CSS.
 
+# [PR link](https://github.com/HishamKhalil1990/cookie-stand-admin/pull/1)
+
 ## Preview
 
 Preview the example live on [StackBlitz](http://stackblitz.com/):

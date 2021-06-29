@@ -23,25 +23,12 @@ export default function Main(props) {
         setAvgCookie(event.target.value);
     }
 
-    function dataSum(){
-        let cummulative = 0
-        const result = []
-        for(let i = 0; i < 14; i++){
-            for(let j = 0; j < report.length; j++){
-                cummulative += report[j].cookies[i]
-            }
-            result.push(cummulative)
-            cummulative = 0
-        }
-        setSummation(
-            result
-        )
-    }
-
     function onCreate(event){
         event.preventDefault();
         let custmer;
         let cookie;
+        let cummulative = 0
+        const result = []
         const data = {
             id:report.length + 1,
             location:location,
@@ -54,17 +41,21 @@ export default function Main(props) {
             custmer = Math.floor(parseInt(sum))
             cookie = custmer*parseFloat(avgCookie)
             data.cookies.push(Math.floor(cookie))
-        }
-        for(let i = 0; i < 2; i++){
-            if(i == 0)
-            setReport(
-                [...report,data]
-            )
-            else{
-                dataSum();
+            cummulative = Math.floor(cookie)
+            for(let j = 0; j < report.length+1; j++){
+                cummulative += report[j] ? report[j].cookies[i] : 0
             }
-            console.log(report)
+            result.push(cummulative)
         }
+        setReport(
+            [...report,data]
+        )
+        setSummation(
+            result
+        )
+        props.setBranches(
+            report.length + 1
+        )
       }
 
     return (
@@ -77,22 +68,22 @@ export default function Main(props) {
                         </div>
                         <div>
                             <div className="container mx-auto w-11/12 my-1.5" >
-                                <label className="mr-8 ..." for="location">location</label>
+                                <label className="mr-8 ..." >location</label>
                                 <input onChange={locHandler} className="w-4/5" type="text" name="location" />
                             </div>
                         </div>
                         <div className="container mx-auto w-11/12 my-1.5" >
                             <div className="flex space-x-6 ...">
                                 <div className="flex flex-col ... w-1/4 text-xs text-center bg-green-100 p-2 rounded-lg">
-                                    <label for="minCustPerHr">Minimum Customers per Hour</label>
+                                    <label >Minimum Customers per Hour</label>
                                     <input onChange={minHandler} type="number" name="minCustPerHr" />
                                 </div>
                                 <div className="flex flex-col ... w-1/4 text-xs text-center bg-green-100 p-2 rounded-lg">
-                                    <label for="maxCustPerHr">Maximum Customers per Hour</label>
+                                    <label >Maximum Customers per Hour</label>
                                     <input onChange={maxHandler} type="number" name="maxCustPerHr" />
                                 </div>
                                 <div className="flex flex-col ... w-1/4 text-xs text-center bg-green-100 p-2 rounded-lg">
-                                    <label for="avgCookie">Average Cookies per Sale</label>
+                                    <label >Average Cookies per Sale</label>
                                     <input onChange={avgHandler} type="number" step="0.01" name="avgCookie" />
                                 </div>
                                 <button className="bg-green-500 w-1/4 rounded-lg">Create</button>
@@ -103,9 +94,9 @@ export default function Main(props) {
             </form>
             <div className="flex flex-col ... text-center ... mb-8 ... container mx-auto w-4/5">
                 {(report.length == 0) ? 
-                <placeholder>No Cookie Stands Available</placeholder> :
-                <table>
-                    <thead>
+                <h2>No Cookie Stands Available</h2> :
+                <table className="border-collapse border border-gray-900 rounded-lg">
+                    <thead className="bg-green-500">
                         <tr key="0">
                             <th>
                                 Location
@@ -116,19 +107,20 @@ export default function Main(props) {
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="border-collapse border border-gray-900">
                         {report.map(data => (
-                            <tr key={data.id}>
-                                <td>{data.location}</td>
-                                {data.cookies.map(cookie => (<td>{cookie}</td>))}
-                                <td>{data.cookies.reduce((acc, curr) => {acc = acc+curr; return acc},0)}</td>
+                            <tr className="border-collapse border border-gray-900" key={data.id}>
+                                <td className="border-collapse border border-gray-900">{data.location}</td>
+                                {data.cookies.map(cookie => (<td className="border-collapse border border-gray-900">{cookie}</td>))}
+                                <td className="border-collapse border border-gray-900">{data.cookies.reduce((acc, curr) => {acc = acc+curr; return acc},0)}</td>
                             </tr>
                         ))}
                     </tbody>
-                    <tfoot>
-                        <tr key={report.length + 1}>
-                            <td>Totals</td>
-                            {summation.map(sum => (<td>{sum}</td>))}
+                    <tfoot className="border-collapse border border-gray-900 bg-green-500">
+                        <tr className="border-collapse border border-gray-900" key={report.length + 1}>
+                            <th className="border-collapse border border-gray-900">Totals</th>
+                            {summation.map(sum => (<th className="border-collapse border border-gray-900">{sum}</th>))}
+                            <th className="border-collapse border border-gray-900">{summation.reduce((acc, curr) => {acc = acc+curr; return acc},0)}</th>
                         </tr>
                     </tfoot>
                 </table>

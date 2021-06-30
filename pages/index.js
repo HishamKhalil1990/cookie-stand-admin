@@ -1,23 +1,23 @@
-import Head from '../components/Head'
-import Header from '../components/Header'
-import Main from '../components/Main'
-import Footer from '../components/Footer'
 import { useState } from 'react'
+import Admin from '../components/CookieStandAdmin'
+import Login from '../components/LoginForm'
 
 
 export default function Home() {
 
-  const [title,setTitle] = useState('Cookie Stand Admin');
-  const [branches,setBranches] = useState('0')
-  const [path,setPath] = useState("/overview")
-  const [page,setPage] = useState("overview")
+  const [userName,setUserName] = useState('hisham')
+  const [savedPassword,setsavedPassword] = useState('password')
+  const [logged,setLogged] = useState(false)
+
+  function change(username,password){
+    if (userName == username && password == savedPassword){
+      setLogged(true);
+    }
+  }
 
   return (
     <div className="bg-green-100">
-      <Head title={title}/>
-      <Header header={title} path={path} page={page}/>
-      <Main title={title} setBranches={setBranches}/>
-      <Footer branches={branches}/>
+      {logged ? <Admin username={userName} password={savedPassword}/> : <Login change={change}/>}
     </div>
   )
 }

@@ -1,7 +1,46 @@
 import { useState } from 'react'
 import { hours } from "../data"
+import axios from 'axios'
 
 export default function Main(props) {
+
+    const baseURL = "https://cookie-stand-api-hisham.herokuapp.com"
+    const token = "/api/token/"
+    const apiData = "/api/v1/cookie_stands/"
+
+    async function getToken(username,password){
+        const url = baseURL+token
+        const response = axios.post(url,{
+            username,
+            password
+        })
+        return response
+    }
+
+    async function save_data(data){
+        const response = await getToken(props.username,props.password)
+        const {access:token,refresh} = response.data
+        console.log(token)
+        const url = baseURL+apiData
+        const config = {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+        axios.post(url,data,config)
+    }
+
+    async function delete_data(id){
+        const response = await getToken(props.username,props.password)
+        const {access:token,refresh} = response.data
+        const url = baseURL+apiData+id
+        const config = {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+        axios.delete(url,config)
+    }
 
     const [location,setLocation] = useState("");
     const [minCustPerHr,setMinCustPerHr] = useState("");
@@ -30,9 +69,14 @@ export default function Main(props) {
         let cummulative = 0
         const result = []
         const data = {
-            id:report.length + 1,
+            // id:report.length + 1,
             location:location,
-            cookies:[]
+            owner:"1",
+            description:"good branch",
+            hourly_sales:[],
+            minimum_customers_per_hour:minCustPerHr,
+            maximum_customers_per_hour:maxCustPerHr,
+            average_cookies_per_sale:avgCookie
         }
         for (let i = 0; i < 14; i++){
             let rand  = Math.random()
@@ -40,22 +84,23 @@ export default function Main(props) {
             sum += parseInt(minCustPerHr)
             custmer = Math.floor(parseInt(sum))
             cookie = custmer*parseFloat(avgCookie)
-            data.cookies.push(Math.floor(cookie))
+            data.hourly_sales.push(Math.floor(cookie))
             cummulative = Math.floor(cookie)
             for(let j = 0; j < report.length+1; j++){
-                cummulative += report[j] ? report[j].cookies[i] : 0
+                cummulative += report[j] ? report[j].hourly_sales[i] : 0
             }
             result.push(cummulative)
         }
-        setReport(
-            [...report,data]
-        )
+        // setReport(
+        //     [...report,data]
+        // )
         setSummation(
             result
         )
         props.setBranches(
             report.length + 1
         )
+        save_data(data)
       }
 
     return (
@@ -83,7 +128,7 @@ export default function Main(props) {
                                     <input onChange={maxHandler} type="number" name="maxCustPerHr" />
                                 </div>
                                 <div className="flex flex-col ... w-1/4 text-xs text-center bg-green-100 p-2 rounded-lg">
-                                    <label >Average Cookies per Sale</label>
+                                    <label >Average hourly_sales per Sale</label>
                                     <input onChange={avgHandler} type="number" step="0.01" name="avgCookie" />
                                 </div>
                                 <button className="bg-green-500 w-1/4 rounded-lg">Create</button>
@@ -111,8 +156,8 @@ export default function Main(props) {
                         {report.map(data => (
                             <tr className="border-collapse border border-gray-900" key={data.id}>
                                 <td className="border-collapse border border-gray-900">{data.location}</td>
-                                {data.cookies.map(cookie => (<td className="border-collapse border border-gray-900">{cookie}</td>))}
-                                <td className="border-collapse border border-gray-900">{data.cookies.reduce((acc, curr) => {acc = acc+curr; return acc},0)}</td>
+                                {data.hourly_sales.map(cookie => (<td className="border-collapse border border-gray-900">{cookie}</td>))}
+                                <td className="border-collapse border border-gray-900">{data.hourly_sales.reduce((acc, curr) => {acc = acc+curr; return acc},0)}</td>
                             </tr>
                         ))}
                     </tbody>

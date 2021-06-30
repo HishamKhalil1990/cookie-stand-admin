@@ -1,5 +1,5 @@
-import Head from '../components/Head'
-import Header from '../components/Header'
+import Head from '../components/CookieStandHead'
+import Header from '../components/CookieStandHeader'
 import { useState } from 'react'
 
 export default function Overview() {

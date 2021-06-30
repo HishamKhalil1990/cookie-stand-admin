@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { hours } from "../data"
 import axios from 'axios'
 
@@ -17,10 +17,21 @@ export default function Main(props) {
         return response
     }
 
+    async function getData(){
+        const response = await getToken(props.username,props.password)
+        const {access:token,refresh} = response.data
+        const url = baseURL+apiData
+        const config = {
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        }
+        return axios.get(url,config)
+    }
+
     async function save_data(data){
         const response = await getToken(props.username,props.password)
         const {access:token,refresh} = response.data
-        console.log(token)
         const url = baseURL+apiData
         const config = {
             headers:{
@@ -39,15 +50,56 @@ export default function Main(props) {
                 Authorization: `Bearer ${token}`
             }
         }
-        axios.delete(url,config)
+        return axios.delete(url,config)
     }
-
+    
     const [location,setLocation] = useState("");
     const [minCustPerHr,setMinCustPerHr] = useState("");
     const [maxCustPerHr,setMaxCustPerHr] = useState("");
     const [avgCookie,setAvgCookie] = useState("");
-    const [report,setReport] = useState("");
-    const [summation,setSummation] = useState("")
+    const [report,setReport] = useState([]);
+    const [summation,setSummation] = useState([])
+    const [status,setStatus] = useState("No Cookie Stands Available")
+    const [reportStatus,setReportStatus] = useState(false)
+    
+    function calSummation(report){
+        let cummulative = 0
+        const result = []
+        for (let i = 0; i < 14; i++){
+            for(let j = 0; j < report.length; j++){
+                cummulative += report[j].hourly_sales[i];
+            }
+            result.push(cummulative)
+            cummulative = 0
+        }
+        setSummation(
+            result
+        )
+    }
+
+    useEffect(async ()=>{
+        const response = await getData()
+        const {data} = response
+        setReport(data)
+        if (data.length > 0){
+            calSummation(data)
+            props.setBranches(
+                data.length
+            )
+        }
+    },[reportStatus])
+
+    useEffect(async ()=>{
+        const response = await getData()
+        const {data} = response
+        setReport(data)
+        if (data.length > 0){
+            calSummation(data)
+            props.setBranches(
+                data.length
+            )
+        }
+    },[])
 
     function locHandler(event){
         setLocation(event.target.value);
@@ -62,14 +114,32 @@ export default function Main(props) {
         setAvgCookie(event.target.value);
     }
 
+    function deleteRow(event){
+        event.preventDefault();
+        setReport([])
+        setStatus("Deleting a row")
+        async function handler(id){
+            const response = await delete_data(id)
+            if (response.status == 204){
+                const getResponse = await getData()
+                const {data} = getResponse
+                if (data.length >= 0){
+                    setReportStatus(!reportStatus)
+                    if (data.length == 0){
+                        setStatus("No Cookie Stands Available")
+                    }
+                }
+            }
+        }
+        handler(event.target.id)
+    }
+
     function onCreate(event){
         event.preventDefault();
         let custmer;
         let cookie;
-        let cummulative = 0
         const result = []
         const data = {
-            // id:report.length + 1,
             location:location,
             owner:"1",
             description:"good branch",
@@ -85,22 +155,11 @@ export default function Main(props) {
             custmer = Math.floor(parseInt(sum))
             cookie = custmer*parseFloat(avgCookie)
             data.hourly_sales.push(Math.floor(cookie))
-            cummulative = Math.floor(cookie)
-            for(let j = 0; j < report.length+1; j++){
-                cummulative += report[j] ? report[j].hourly_sales[i] : 0
-            }
-            result.push(cummulative)
         }
-        // setReport(
-        //     [...report,data]
-        // )
-        setSummation(
-            result
-        )
-        props.setBranches(
-            report.length + 1
-        )
         save_data(data)
+        setReport([])
+        setReportStatus(!reportStatus)
+        setStatus("New Row in a Pending State")
       }
 
     return (
@@ -139,7 +198,7 @@ export default function Main(props) {
             </form>
             <div className="flex flex-col ... text-center ... mb-8 ... container mx-auto w-4/5">
                 {(report.length == 0) ? 
-                <h2>No Cookie Stands Available</h2> :
+                <h2>{status}</h2> :
                 <table className="border-collapse border border-gray-900 rounded-lg">
                     <thead className="bg-green-500">
                         <tr key="0">
@@ -155,7 +214,18 @@ export default function Main(props) {
                     <tbody className="border-collapse border border-gray-900">
                         {report.map(data => (
                             <tr className="border-collapse border border-gray-900" key={data.id}>
-                                <td className="border-collapse border border-gray-900">{data.location}</td>
+                                <td className="border-collapse border border-gray-900">
+                                    <div className="flex justify-between">
+                                        <div className="pl-2">
+                                            {data.location}
+                                        </div>
+                                        <div className="pr-2">
+                                            <button onClick={deleteRow} ><svg id={data.id} xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <path id={data.id} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+</svg></button>
+                                        </div>
+                                    </div>
+                                </td>
                                 {data.hourly_sales.map(cookie => (<td className="border-collapse border border-gray-900">{cookie}</td>))}
                                 <td className="border-collapse border border-gray-900">{data.hourly_sales.reduce((acc, curr) => {acc = acc+curr; return acc},0)}</td>
                             </tr>

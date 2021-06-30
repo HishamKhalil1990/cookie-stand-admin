@@ -1,7 +1,7 @@
-import Head from '../components/Head'
-import Header from '../components/Header'
-import Main from '../components/Main'
-import Footer from '../components/Footer'
+import Head from './CookieStandHead'
+import Header from './CookieStandHeader'
+import Main from './CookieStandMain'
+import Footer from './CookieStandFooter'
 import { useState } from 'react'
 
 export default function Admin({username,password}){
@@ -14,9 +14,9 @@ export default function Admin({username,password}){
     return (
         <div className="bg-green-100">
         <Head title={title}/>
-        <Header header={title} path={path} page={page}/>
+        <Header header={title} path={path} page={page} username={username}/>
         <Main title={title} setBranches={setBranches} username={username} password={password}/>
-        <Footer branches={branches}/>
+        <Footer branches={branches} />
         </div>
     )
 
